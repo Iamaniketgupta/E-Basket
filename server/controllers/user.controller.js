@@ -233,8 +233,8 @@ const updateUserAvatar = asyncHandler(async (req, res) => {
 
 });
 
-
-const forgetPassword = asyncHandler(async (req, res,next) => {
+// FORGET PASSWORD AND RESET PASSWORD
+const forgetPassword = asyncHandler(async (req, res, next) => {
 
     const user = await User.findOne({ email: req.body?.email });
     if (!user)
@@ -250,24 +250,25 @@ const forgetPassword = asyncHandler(async (req, res,next) => {
 
     const resetPasswordUrl = `${req.protocol}://${req.get("host")}/password/reset/${resetToken}`
 
-    const message =`Your password reset token is  : \n\n ${resetPasswordUrl} \n If you have not requested this then please ignore it`;
+    const message = `Your password reset token is  : \n\n ${resetPasswordUrl} \n If you have not requested this then please ignore it`;
 
     console.log(":yha tk ok")
     try {
 
         await sendEmail({
-            email:user.email,
-            subject:"E-Basket Password reset",
-            message:message
+            from: process.env.NODEMAILER_EMAIL,
+            to: user.email,
+            subject: "E-Basket Password reset",
+            message: message
         })
 
-        res.status(200).json(new ApiResponse(200,"Email has been sent"))
-        
-    } catch (error) {
-        user.refreshToken =undefined;
-        await user.save({validateBeforeSave:false});
+        res.status(200).json(new ApiResponse(200, "Email has been sent"))
 
-        return next(new ApiError(500,"Something went wrong"));
+    } catch (error) {
+        user.refreshToken = undefined;
+        await user.save({ validateBeforeSave: false });
+
+        return next(new ApiError(500, "Something went wrong"));
     }
 
 })

@@ -22,7 +22,7 @@ userRouter.get("/user",verifyJwt,getCurrentUser);
 userRouter.post("/user/login", loginUser);
 userRouter.get("/user/logout",verifyJwt, logOutUser);
 userRouter.put("/user/password",verifyJwt, changeCurrentPassword);
-userRouter.post("/user/password/forgot",forgetPassword);
+userRouter.post("/user/forgetpassword",forgetPassword);
 userRouter.put("/user/update",verifyJwt,updateAccountDetails);
 
 export default userRouter;
