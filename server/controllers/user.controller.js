@@ -4,6 +4,7 @@ import { ApiError } from "../utils/apiError.js";
 import { uploadOnCloudianry } from "../utils/cloudinary.js"
 import Jwt from "jsonwebtoken";
 import { ApiResponse } from "../utils/apiResponse.js";
+import { sendEmail } from "../utils/sendEmail.js";
 
 
 const registerUser = asyncHandler(async (req, res) => {
@@ -70,6 +71,7 @@ const loginUser = asyncHandler(async (req, res) => {
     //validation of the required values
     if (username && email) throw new ApiError(400, "email or username is required");
 
+
     const ValidUser = await User.findOne({
         $or: [{ email }, { username }]
     });
@@ -84,14 +86,17 @@ const loginUser = asyncHandler(async (req, res) => {
     }
 
     const accessToken = await ValidUser.generateAccessToken();
-    // Update user document with refresh token
     const refreshToken = await ValidUser.generateRefreshToken();
+    if (!refreshToken)
+        throw new ApiError(500, "something went wrong");
+
     const rtoken = await User.findByIdAndUpdate(ValidUser._id, { refreshToken: refreshToken });
+
     if (!rtoken)
         throw new ApiError(500, "something went wrong");
 
     return res.status(200).cookie("authId", accessToken, options)
-        .cookie("referId", rtoken.refreshToken, options).json({
+        .cookie("referId", refreshToken, options).json({
             message: "Logged in Success"
         });
 
@@ -143,7 +148,7 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
         });
 });
 
-
+// CHANGE PASSWORD  
 const changeCurrentPassword = asyncHandler(async (req, res) => {
     const { oldPassword, newPassword } = req.body;
 
@@ -167,14 +172,19 @@ const changeCurrentPassword = asyncHandler(async (req, res) => {
 
 });
 
+//  GET USER DETAILS
 const getCurrentUser = asyncHandler(async (req, res) => {
+    const user = await User.findById(req.user?._id);
+    if (!user)
+        throw new ApiError(500, "Internal server Error");
+
     return res.status(200).json(200, req.user, "Current user Fetched Success")
 });
 
-
+// UPDATE USER DETAILS
 const updateAccountDetails = asyncHandler(async (req, res) => {
     const { fullName, email } = req.body;
-    if (!fullName || !email) {
+    if (fullName && email) {
         throw new ApiError(400, "All fields are required")
     }
     const user = await User.findByIdAndUpdate(req.user?._id, {
@@ -224,6 +234,44 @@ const updateUserAvatar = asyncHandler(async (req, res) => {
 });
 
 
+const forgetPassword = asyncHandler(async (req, res,next) => {
+
+    const user = await User.findOne({ email: req.body?.email });
+    if (!user)
+        throw new ApiError(404, "User Not Found");
+
+    const resetToken = await user.generateRefreshToken();
+    console.log(resetToken)
+    if (!resetToken)
+        throw new ApiError(500, "Something went wrong");
+
+    user.refreshToken = resetToken;
+    await user.save({ validateBeforeSave: false });
+
+    const resetPasswordUrl = `${req.protocol}://${req.get("host")}/password/reset/${resetToken}`
+
+    const message =`Your password reset token is  : \n\n ${resetPasswordUrl} \n If you have not requested this then please ignore it`;
+
+    console.log(":yha tk ok")
+    try {
+
+        await sendEmail({
+            email:user.email,
+            subject:"E-Basket Password reset",
+            message:message
+        })
+
+        res.status(200).json(new ApiResponse(200,"Email has been sent"))
+        
+    } catch (error) {
+        user.refreshToken =undefined;
+        await user.save({validateBeforeSave:false});
+
+        return next(new ApiError(500,"Something went wrong"));
+    }
+
+})
+
 
 
 export {
@@ -234,4 +282,5 @@ export {
     getCurrentUser,
     updateAccountDetails,
     updateUserAvatar,
+    forgetPassword
 }

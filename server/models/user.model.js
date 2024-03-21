@@ -43,6 +43,7 @@ const userSchema = new Schema({
 
     role:{
         type:String,
+        required:true,
         default:"user"
     },
 
@@ -102,7 +103,6 @@ userSchema.methods.generateRefreshToken = async function () {  //user password
         {
             expiresIn: process.env.REFRESH_TOKEN_EXPIRY
         });
-
 }
 
 const User = mongoose.model('User', userSchema)

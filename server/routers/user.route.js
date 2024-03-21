@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { logOutUser, loginUser, registerUser } from "../controllers/user.controller.js";
+import { changeCurrentPassword, forgetPassword, getCurrentUser, logOutUser, loginUser, registerUser, updateAccountDetails } from "../controllers/user.controller.js";
 import { upload } from "../middlewares/multer.middleware.js";
 import { verifyJwt } from "../middlewares/auth.middleware.js";
 const userRouter = Router();
@@ -18,9 +18,11 @@ upload.fields(
     ]
 ), registerUser);
 
+userRouter.get("/user",verifyJwt,getCurrentUser);
 userRouter.post("/user/login", loginUser);
 userRouter.get("/user/logout",verifyJwt, logOutUser);
-
-
+userRouter.put("/user/password",verifyJwt, changeCurrentPassword);
+userRouter.post("/user/password/forgot",forgetPassword);
+userRouter.put("/user/update",verifyJwt,updateAccountDetails);
 
 export default userRouter;
