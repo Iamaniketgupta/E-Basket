@@ -23,19 +23,17 @@ const createNewProduct = asyncHandler(async (req, res) => {
 const getAllProduct = asyncHandler(async (req, res) => {
     const resultPerPage = 8;
 
-    const apiFeature = new ApiFeatures(Product.find(), req.query)
-        .searchProducts()
-        .filterProducts()
-        .pagination(resultPerPage)
+    // const apiFeature = new ApiFeatures(Product.find({}), req.query).Pagination(resultPerPage)
 
-    const products = await apiFeature;
-    console.log(apiFeature)
+
+    const products = await Product.find({});
+
     if (!products)
         throw new ApiError(404, "No products are there");
 
-    res.status(200).json(new ApiResponse(200, products, "Products fetched success"));
+    res.status(200).json(new ApiResponse(200,"Products fetched success",products ));
 
-})
+});
 
 
 const updateProduct = asyncHandler(async (req, res) => {

@@ -18,7 +18,7 @@ class ApiFeatures {
 
     }
 
-    filterProducts() {
+      async  filterProducts() {
         const querCopy = { ...this.queryStrToSearch };
         const removeFeilds = ["key", "page", "limit"];
 
@@ -32,7 +32,7 @@ class ApiFeatures {
         return this
     }
 
-    Pagination(resultPerPage) {
+    async Pagination(resultPerPage) {
         const currentPage = Number(this.queryStrToSearch.page) || 1;
 
         const skip = resultPerPage * (currentPage - 1);  // to skip the products

@@ -5,7 +5,7 @@ import { authorizesRoles } from "../middlewares/adminAuth.js";
 
 const productRouter = Router();
 
-productRouter.get("/product",getAllProduct);
+productRouter.get("/products",getAllProduct);
 productRouter.route("/product/new").post(verifyJwt,authorizesRoles("admin"),createNewProduct);
 productRouter.put("/product/update/:id",verifyJwt,authorizesRoles("admin"),updateProduct);
 productRouter.delete("/product/review/",verifyJwt,deleteProductReview);
